@@ -1,72 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class MyApp extends HookWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BPM Tap',
-      home: const MyHomePage(),
-    );
-  }
-}
+  Widget build(context) {
+    final avgbpm = useState(0.0);
+    final n = useState(0);
+    final lastTap = useState(0);
+    final newbpm = useState(0.0);
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  double avgbpm = 0.0;
-  int n = 0;
-  int lastTap = 0;
-  double newbpm = 0.0;
-
-  void _tap() {
-    int now = DateTime.now().millisecondsSinceEpoch;
-    if (lastTap != 0) {
-      n += 1;
-      int d = now - lastTap;
-      newbpm = 1000 * 60 / d;
-      setState(() {
-        avgbpm += (newbpm - avgbpm) / n;
-      });
+    void _tap() {
+      int now = DateTime.now().millisecondsSinceEpoch;
+      if (lastTap.value != 0) {
+        n.value += 1;
+        int d = now - lastTap.value;
+        newbpm.value = 1000 * 60 / d;
+        avgbpm.value += (newbpm.value - avgbpm.value) / n.value;
+      }
+      lastTap.value = now;
     }
-    lastTap = now;
-  }
 
-  void _reset() {
-    setState(() {
-      avgbpm = 0.0;
-      lastTap = 0;
-      newbpm = 0.0;
-      n = 0;
-    });
-  }
+    void _reset() {
+      avgbpm.value = 0.0;
+      lastTap.value = 0;
+      newbpm.value = 0.0;
+      n.value = 0;
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child:TextButton(
         onPressed: _tap,
         style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Spacer(),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Spacer(),
-            Text(newbpm.toStringAsFixed(2),
+            Text(newbpm.value.toStringAsFixed(2),
                 style: TextStyle(fontSize: 42, color: Colors.white)),
             Spacer(),
-            Text('$n', style: TextStyle(fontSize: 42, color: Colors.white)),
+            Text('${n.value}', 
+                style: TextStyle(fontSize: 42, color: Colors.white)),
           ]),
           Spacer(),
-          Text(avgbpm.toStringAsFixed(2),
+          Text(avgbpm.value.toStringAsFixed(2),
               style: TextStyle(fontSize: 72, color: Colors.white)),
           Spacer(),
           Spacer(),
@@ -77,9 +56,9 @@ class _MyHomePageState extends State<MyHomePage> {
               backgroundColor: Colors.white,
               splashFactory: NoSplash.splashFactory,
             ),
-            child: new Text('Reset',
-                style: TextStyle(fontSize: 26, color: Colors.black)),
+            child: Text('Reset',
+              style: TextStyle(fontSize: 26, color: Colors.black)),
           ),
-        ]));
+        ])));
   }
 }
